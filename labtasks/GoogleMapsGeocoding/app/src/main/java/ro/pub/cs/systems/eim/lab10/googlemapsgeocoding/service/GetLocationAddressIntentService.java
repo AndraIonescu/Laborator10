@@ -3,12 +3,15 @@ package ro.pub.cs.systems.eim.lab10.googlemapsgeocoding.service;
 import android.app.IntentService;
 import android.content.Intent;
 import android.location.Address;
+import android.location.Geocoder;
 import android.location.Location;
 import android.os.Bundle;
 import android.os.ResultReceiver;
 import android.util.Log;
 
+import java.io.IOException;
 import java.util.List;
+import java.util.Locale;
 
 import ro.pub.cs.systems.eim.lab10.googlemapsgeocoding.general.Constants;
 
@@ -53,8 +56,32 @@ public class GetLocationAddressIntentService extends IntentService {
         // concatenate all lines from each address (number of lines: getMaxAddressLineIndex(); specific line: getAddressLine()
         // call handleResult method with result (Constants.RESULT_SUCCESS, Constants.RESULT_FAILURE) and the address details / error message
 
-        errorMessage = "Not implemented yet";
-        handleResult(Constants.RESULT_FAILURE, errorMessage);
+        Geocoder geocoder = new Geocoder(this, Locale.getDefault());
+        try {
+            addressList = geocoder.getFromLocation(location.getLatitude(), location.getLongitude(), Constants.NUMBER_OF_ADDRESSES);
+
+            if (addressList == null || addressList.isEmpty()) {
+                errorMessage = "The geocoder could not find an address for the given latitude / longitude";
+                Log.e(Constants.TAG, "An exception has occurred: " + errorMessage);
+                handleResult(Constants.RESULT_FAILURE, errorMessage);
+                return;
+            }
+
+            StringBuffer result = new StringBuffer();
+
+            for (Address address: addressList) {
+                for (int k = 0; k < address.getMaxAddressLineIndex(); k++) {
+                    result.append(address.getAddressLine(k) + System.getProperty("line.separator"));
+                }
+                result.append(System.getProperty("line.separator"));
+            }
+            Log.i(Constants.TAG, "There were " + addressList.size() + " addresses found");
+            handleResult(Constants.RESULT_SUCCESS, result.toString());
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
     }
 
     private void handleResult(int resultCode, String message) {

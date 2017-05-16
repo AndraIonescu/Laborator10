@@ -263,6 +263,29 @@ public class GoogleMapsActivity extends AppCompatActivity implements GoogleApiCl
         // disable the latitudeEditText, longitudeEditText, navigateToLocationButton widgets
         // the whole routine should be put in a try ... catch block for SecurityExeption
 
+        try {
+            LocationServices.FusedLocationApi.requestLocationUpdates(
+                    googleApiClient,
+                    locationRequest,
+                    this
+            );
+            locationUpdatesStatus = true;
+            googleMap.setMyLocationEnabled(true);
+            locationUpdatesStatusButton.setText(getResources().getString(R.string.stop_location_updates));
+            locationUpdatesStatusButton.setBackground(getResources().getDrawable(R.color.colorGreen));
+            if (lastLocation != null) {
+                navigateToLocation(lastLocation);
+            }
+            latitudeEditText.setEnabled(false);
+            longitudeEditText.setEnabled(false);
+            navigateToLocationButton.setEnabled(false);
+        } catch (SecurityException securityException) {
+            Log.e(Constants.TAG, securityException.getMessage());
+            if (Constants.DEBUG) {
+                securityException.printStackTrace();
+            }
+        }
+
     }
 
     private void stopLocationUpdates() {
@@ -275,6 +298,26 @@ public class GoogleMapsActivity extends AppCompatActivity implements GoogleApiCl
         // enable the latitudeEditText, longitudeEditText, navigateToLocationButton widgets	and reset their content
         // the whole routine should be put in a try ... catch block for SecurityExeption
 
+        try {
+            LocationServices.FusedLocationApi.removeLocationUpdates(
+                    googleApiClient,
+                    this
+            );
+            locationUpdatesStatus = false;
+            googleMap.setMyLocationEnabled(false);
+            locationUpdatesStatusButton.setText(getResources().getString(R.string.start_location_updates));
+            locationUpdatesStatusButton.setBackground(getResources().getDrawable(R.color.colorRed));
+            latitudeEditText.setEnabled(true);
+            longitudeEditText.setEnabled(true);
+            navigateToLocationButton.setEnabled(true);
+            latitudeEditText.setText(new String());
+            longitudeEditText.setText(new String());
+        } catch (SecurityException securityException) {
+            Log.e(Constants.TAG, securityException.getMessage());
+            if (Constants.DEBUG) {
+                securityException.printStackTrace();
+            }
+        }
     }
 
     @Override
